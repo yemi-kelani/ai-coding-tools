@@ -1,0 +1,291 @@
+<mutation_testing>
+  <overview>
+    Mutation testing validates test quality by introducing bugs and checking if tests catch them.
+    Code coverage shows where tests aren't. Mutation testing shows if tests catch bugs.
+  </overview>
+
+  <what_is_mutation_testing>
+    <description>
+      Mutation testing tools automatically modify (mutate) your code in small ways,
+      then run your tests to see if they detect the changes. Each modification is called a "mutant."
+    </description>
+    <example_mutations>
+      <mutation>Change + to -</mutation>
+      <mutation>Change < to <=</mutation>
+      <mutation>Remove if condition</mutation>
+      <mutation>Change true to false</mutation>
+      <mutation>Remove return statement</mutation>
+    </example_mutations>
+    <scoring>
+      <killed>Test detected the mutation (good)</killed>
+      <survived>Test did not detect the mutation (bad - test gap)</survived>
+      <timeout>Mutation caused infinite loop</timeout>
+      <mutation_score>Percentage of mutants killed (aim for 80%+)</mutation_score>
+    </scoring>
+  </what_is_mutation_testing>
+
+  <when_to_suggest>
+    <scenario>User asks for "comprehensive" or "thorough" tests</scenario>
+    <scenario>High-value code (payments, authentication, data integrity)</scenario>
+    <scenario>Refactoring legacy code</scenario>
+    <scenario>After initial test suite is written</scenario>
+    <scenario>When test coverage is high but confidence is low</scenario>
+  </when_to_suggest>
+
+  <tools_by_language>
+    <language name="JavaScript/TypeScript">
+      <tool name="Stryker" recommended="true">
+        <installation>npm install --save-dev @stryker-mutator/core</installation>
+        <configuration>
+          <![CDATA[
+// stryker.conf.json
+{
+  "mutator": "typescript",
+  "packageManager": "npm",
+  "testRunner": "jest",
+  "coverageAnalysis": "perTest",
+  "mutate": [
+    "src/**/*.ts",
+    "!src/**/*.spec.ts"
+  ]
+}
+          ]]>
+        </configuration>
+        <usage>npx stryker run</usage>
+        <interpretation>
+          <good>Mutation score above 80%</good>
+          <acceptable>Mutation score 60-80%</acceptable>
+          <poor>Mutation score below 60%</poor>
+        </interpretation>
+      </tool>
+    </language>
+
+    <language name="Python">
+      <tool name="mutmut" recommended="true">
+        <installation>pip install mutmut</installation>
+        <usage>mutmut run</usage>
+        <view_results>mutmut results</view_results>
+        <show_survivors>mutmut show [id]</show_survivors>
+        <interpretation>
+          <good>Mutation score above 80%</good>
+          <acceptable>Mutation score 60-80%</acceptable>
+          <poor>Mutation score below 60%</poor>
+        </interpretation>
+      </tool>
+    </language>
+
+    <language name="Java">
+      <tool name="PIT/Pitest" recommended="true">
+        <installation>Add to Maven/Gradle dependencies</installation>
+        <maven_config>
+          <![CDATA[
+<plugin>
+  <groupId>org.pitest</groupId>
+  <artifactId>pitest-maven</artifactId>
+  <version>1.9.0</version>
+</plugin>
+          ]]>
+        </maven_config>
+        <usage>mvn org.pitest:pitest-maven:mutationCoverage</usage>
+      </tool>
+    </language>
+
+    <language name="Rust">
+      <tool name="cargo-mutants" recommended="true">
+        <installation>cargo install cargo-mutants</installation>
+        <usage>cargo mutants</usage>
+        <options>
+          <option>--timeout 60 (set timeout for slow tests)</option>
+          <option>--jobs 4 (parallel execution)</option>
+        </options>
+      </tool>
+    </language>
+  </tools_by_language>
+
+  <workflow>
+    <step number="1">
+      <title>Write Initial Test Suite</title>
+      <description>
+        Create comprehensive tests following TDD workflow and test quality principles.
+        Aim for high code coverage first.
+      </description>
+    </step>
+
+    <step number="2">
+      <title>Run Mutation Testing</title>
+      <description>
+        Execute mutation testing tool on the codebase.
+        This will take longer than normal test runs.
+      </description>
+      <command_examples>
+        <example language="typescript">npx stryker run</example>
+        <example language="python">mutmut run</example>
+        <example language="rust">cargo mutants</example>
+      </command_examples>
+    </step>
+
+    <step number="3">
+      <title>Analyze Survivors</title>
+      <description>
+        Review mutants that survived (tests didn't catch them).
+        Each survivor represents a potential bug your tests would miss.
+      </description>
+      <what_to_look_for>
+        <item>Boundary conditions not tested</item>
+        <item>Error handling gaps</item>
+        <item>Shallow assertions (checking type but not value)</item>
+        <item>Missing edge cases</item>
+      </what_to_look_for>
+    </step>
+
+    <step number="4">
+      <title>Add Missing Tests</title>
+      <description>
+        Write new tests to kill surviving mutants.
+        Focus on tests that would catch real bugs.
+      </description>
+      <example>
+        <survivor>Mutant changed < to <= in age validation</survivor>
+        <missing_test>Test with age exactly at boundary (e.g., age 18 if minimum is 18)</missing_test>
+      </example>
+    </step>
+
+    <step number="5">
+      <title>Re-run and Verify</title>
+      <description>
+        Run mutation testing again to verify new tests kill the mutants.
+        Iterate until mutation score is acceptable.
+      </description>
+    </step>
+  </workflow>
+
+  <interpreting_results>
+    <killed_mutants>
+      <description>Tests successfully detected the mutation</description>
+      <action>No action needed - tests are working</action>
+    </killed_mutants>
+
+    <survived_mutants>
+      <description>Tests did not detect the mutation</description>
+      <action>Add test to catch this type of bug</action>
+      <example>
+        <mutation>Changed + to -</mutation>
+        <problem>Tests only check that result exists, not that it's correct</problem>
+        <solution>Add assertion checking specific calculated value</solution>
+      </example>
+    </survived_mutants>
+
+    <timeout_mutants>
+      <description>Mutation caused infinite loop or very slow execution</description>
+      <action>Usually indicates mutation broke loop condition - tests working</action>
+    </timeout_mutants>
+
+    <equivalent_mutants>
+      <description>Mutation doesn't change behavior (e.g., i++ vs ++i when value not used)</description>
+      <action>Can be ignored - not a real test gap</action>
+    </equivalent_mutants>
+  </interpreting_results>
+
+  <common_patterns>
+    <pattern name="Boundary Mutations">
+      <mutations>< to <=, > to >=, == to !=</mutations>
+      <test_gap>Not testing exact boundary values</test_gap>
+      <solution>Add tests at min, max, min-1, max+1</solution>
+    </pattern>
+
+    <pattern name="Arithmetic Mutations">
+      <mutations>+ to -, * to /, ++ to --</mutations>
+      <test_gap>Shallow assertions or not checking calculated values</test_gap>
+      <solution>Assert specific expected values, not just types</solution>
+    </pattern>
+
+    <pattern name="Boolean Mutations">
+      <mutations>true to false, && to ||, ! removal</mutations>
+      <test_gap>Not testing both branches of conditionals</test_gap>
+      <solution>Add tests for both true and false conditions</solution>
+    </pattern>
+
+    <pattern name="Return Value Mutations">
+      <mutations>return x to return null, return 0</mutations>
+      <test_gap>Not asserting on return values</test_gap>
+      <solution>Add specific assertions on return values</solution>
+    </pattern>
+  </common_patterns>
+
+  <target_mutation_scores>
+    <critical_code>
+      <description>Payment processing, authentication, data integrity</description>
+      <target>90%+ mutation score</target>
+    </critical_code>
+
+    <business_logic>
+      <description>Core application logic, calculations, workflows</description>
+      <target>80%+ mutation score</target>
+    </business_logic>
+
+    <utility_code>
+      <description>Helper functions, formatters, simple utilities</description>
+      <target>70%+ mutation score</target>
+    </utility_code>
+
+    <ui_code>
+      <description>Presentation logic, styling, simple components</description>
+      <target>60%+ mutation score (harder to test comprehensively)</target>
+    </ui_code>
+  </target_mutation_scores>
+
+  <limitations>
+    <limitation>
+      Mutation testing is slow - can take 10-100x longer than normal test runs
+    </limitation>
+    <limitation>
+      Not all survived mutants indicate real test gaps (equivalent mutants)
+    </limitation>
+    <limitation>
+      High mutation score doesn't guarantee bug-free code
+    </limitation>
+    <limitation>
+      Should be run periodically, not on every commit
+    </limitation>
+  </limitations>
+
+  <best_practices>
+    <practice>Run mutation testing after initial test suite is complete</practice>
+    <practice>Focus on high-value code first</practice>
+    <practice>Use mutation testing to validate test quality, not as primary metric</practice>
+    <practice>Combine with code coverage for comprehensive quality assessment</practice>
+    <practice>Run in CI/CD but allow failures initially while improving</practice>
+    <practice>Review survivors manually - not all need new tests</practice>
+  </best_practices>
+
+  <suggesting_to_users>
+    <when_to_suggest>
+      After writing comprehensive test suite, suggest mutation testing to validate quality
+    </when_to_suggest>
+    <how_to_suggest>
+      <template>
+        <![CDATA[
+To validate test quality, I recommend running mutation testing:
+
+For [language], use [tool]:
+```
+[installation command]
+[run command]
+```
+
+This will:
+- Introduce small bugs into your code
+- Run tests to see if they catch the bugs
+- Report mutation score (aim for 80%+)
+
+Survived mutants indicate test gaps. Would you like me to:
+1. Set up mutation testing configuration
+2. Run it and analyze results
+3. Add tests to kill surviving mutants
+        ]]>
+      </template>
+    </how_to_suggest>
+  </suggesting_to_users>
+</mutation_testing>
+
+<!-- Made with Bob -->

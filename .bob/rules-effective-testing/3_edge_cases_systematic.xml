@@ -1,0 +1,395 @@
+<edge_case_patterns>
+  <overview>
+    Systematic edge case coverage by data type and context.
+    Scan this list when writing tests to ensure comprehensive coverage.
+  </overview>
+
+  <numeric_values>
+    <category name="Zero">
+      <test_values>0, -0, 0.0</test_values>
+      <what_breaks>Division, array indexing, loop conditions</what_breaks>
+      <examples>
+        <example>Division by zero should raise error</example>
+        <example>Array access at index 0 should return first element</example>
+        <example>Loop with 0 iterations should not execute body</example>
+      </examples>
+    </category>
+
+    <category name="Boundaries">
+      <test_values>MIN_INT, MAX_INT, MIN_FLOAT, MAX_FLOAT</test_values>
+      <what_breaks>Overflow, type coercion, precision loss</what_breaks>
+      <examples>
+        <example>Adding 1 to MAX_INT should handle overflow</example>
+        <example>Multiplying large numbers should not overflow</example>
+      </examples>
+    </category>
+
+    <category name="Off-by-one">
+      <test_values>min-1, max+1, boundary±1</test_values>
+      <what_breaks>Fence-post errors, range checks, array bounds</what_breaks>
+      <examples>
+        <example>Age validator: test 17, 18, 19 if minimum is 18</example>
+        <example>Array slice: test length-1, length, length+1</example>
+      </examples>
+    </category>
+
+    <category name="Signs">
+      <test_values>positive, negative, mixed</test_values>
+      <what_breaks>Absolute value assumptions, comparison logic</what_breaks>
+      <examples>
+        <example>Distance calculation with negative coordinates</example>
+        <example>Sorting mixed positive and negative numbers</example>
+      </examples>
+    </category>
+
+    <category name="Precision">
+      <test_values>0.1 + 0.2, 1e-10, 1e308</test_values>
+      <what_breaks>Float comparison, rounding, precision loss</what_breaks>
+      <examples>
+        <example>Use approximate equality for float comparison</example>
+        <example>Test very small and very large numbers</example>
+      </examples>
+    </category>
+
+    <category name="Special">
+      <test_values>NaN, Infinity, -Infinity</test_values>
+      <what_breaks>Propagation, comparison, arithmetic</what_breaks>
+      <examples>
+        <example>NaN should not equal NaN</example>
+        <example>Operations with Infinity should handle correctly</example>
+      </examples>
+    </category>
+  </numeric_values>
+
+  <strings>
+    <category name="Empty">
+      <test_values>"", null, undefined</test_values>
+      <what_breaks>Length checks, first character access, string operations</what_breaks>
+      <examples>
+        <example>Empty string should not crash parser</example>
+        <example>Null string should be handled gracefully</example>
+      </examples>
+    </category>
+
+    <category name="Whitespace">
+      <test_values>" ", "\t", "\n", leading/trailing spaces</test_values>
+      <what_breaks>Trimming assumptions, validation, parsing</what_breaks>
+      <examples>
+        <example>Username with spaces should be rejected/trimmed</example>
+        <example>Multiline input should preserve newlines</example>
+      </examples>
+    </category>
+
+    <category name="Length">
+      <test_values>1 character, max length, max+1</test_values>
+      <what_breaks>Buffer overflow, truncation, display</what_breaks>
+      <examples>
+        <example>Single character name should be valid</example>
+        <example>String exceeding max length should be rejected</example>
+      </examples>
+    </category>
+
+    <category name="Encoding">
+      <test_values>unicode (日本語), emoji (🎉), RTL text</test_values>
+      <what_breaks>Display, sorting, length calculation</what_breaks>
+      <examples>
+        <example>Unicode characters should not corrupt data</example>
+        <example>Emoji should count as single character</example>
+      </examples>
+    </category>
+
+    <category name="Special Characters">
+      <test_values>quotes, backslashes, \0, SQL/HTML special chars</test_values>
+      <what_breaks>Escaping, parsing, SQL injection, XSS</what_breaks>
+      <examples>
+        <example>String with quotes should be properly escaped</example>
+        <example>HTML tags should be sanitized</example>
+      </examples>
+    </category>
+
+    <category name="Case">
+      <test_values>UPPER, lower, MiXeD</test_values>
+      <what_breaks>Case-sensitive comparison, validation</what_breaks>
+      <examples>
+        <example>Email comparison should be case-insensitive</example>
+        <example>Password should be case-sensitive</example>
+      </examples>
+    </category>
+  </strings>
+
+  <collections>
+    <category name="Size">
+      <test_values>empty, 1 element, 2 elements, 1000+ elements</test_values>
+      <what_breaks>Off-by-one, first/last handling, performance</what_breaks>
+      <examples>
+        <example>Empty array should not crash iteration</example>
+        <example>Single element array should handle correctly</example>
+        <example>Large array should not cause timeout</example>
+      </examples>
+    </category>
+
+    <category name="Duplicates">
+      <test_values>all same, some duplicates, no duplicates</test_values>
+      <what_breaks>Deduplication, counting, uniqueness checks</what_breaks>
+      <examples>
+        <example>Array with all duplicates should deduplicate to one</example>
+        <example>Unique constraint should reject duplicates</example>
+      </examples>
+    </category>
+
+    <category name="Order">
+      <test_values>sorted, reverse sorted, random order</test_values>
+      <what_breaks>Sort stability, binary search, assumptions</what_breaks>
+      <examples>
+        <example>Already sorted array should remain sorted</example>
+        <example>Reverse sorted should sort correctly</example>
+      </examples>
+    </category>
+
+    <category name="Content">
+      <test_values>contains null, nested empty collections</test_values>
+      <what_breaks>Null propagation, iteration, nested access</what_breaks>
+      <examples>
+        <example>Array with null elements should handle gracefully</example>
+        <example>Nested empty arrays should not crash</example>
+      </examples>
+    </category>
+
+    <category name="Index">
+      <test_values>0, -1, length-1, length, out of bounds</test_values>
+      <what_breaks>Bounds checking, negative indexing</what_breaks>
+      <examples>
+        <example>Index 0 should return first element</example>
+        <example>Negative index should handle appropriately</example>
+        <example>Out of bounds should raise error</example>
+      </examples>
+    </category>
+  </collections>
+
+  <objects_maps>
+    <category name="Empty">
+      <test_values>{}, no keys</test_values>
+      <what_breaks>Property access, iteration, required fields</what_breaks>
+      <examples>
+        <example>Empty object should not crash property access</example>
+        <example>Missing required fields should be rejected</example>
+      </examples>
+    </category>
+
+    <category name="Keys">
+      <test_values>missing required, extra keys, null key</test_values>
+      <what_breaks>Validation, destructuring, key access</what_breaks>
+      <examples>
+        <example>Missing required key should raise error</example>
+        <example>Extra keys should be ignored or rejected</example>
+      </examples>
+    </category>
+
+    <category name="Values">
+      <test_values>null values, undefined, wrong type</test_values>
+      <what_breaks>Type assumptions, null checks</what_breaks>
+      <examples>
+        <example>Null value should be handled or rejected</example>
+        <example>Wrong type should raise validation error</example>
+      </examples>
+    </category>
+
+    <category name="Depth">
+      <test_values>flat, deeply nested, circular references</test_values>
+      <what_breaks>Recursion, serialization, stack overflow</what_breaks>
+      <examples>
+        <example>Deeply nested object should not stack overflow</example>
+        <example>Circular reference should be detected</example>
+      </examples>
+    </category>
+  </objects_maps>
+
+  <date_time>
+    <category name="Boundaries">
+      <test_values>epoch (1970-01-01), far future (9999), far past</test_values>
+      <what_breaks>Overflow, display, storage</what_breaks>
+      <examples>
+        <example>Epoch date should be handled correctly</example>
+        <example>Year 9999 should not overflow</example>
+      </examples>
+    </category>
+
+    <category name="Calendar">
+      <test_values>Feb 29, Dec 31, Jan 1</test_values>
+      <what_breaks>Leap year, year boundary, month boundary</what_breaks>
+      <examples>
+        <example>Feb 29 should only exist in leap years</example>
+        <example>Dec 31 to Jan 1 transition should work</example>
+      </examples>
+    </category>
+
+    <category name="Timezone">
+      <test_values>UTC, local, +14:00, -12:00, DST transitions</test_values>
+      <what_breaks>Conversion, storage, display</what_breaks>
+      <examples>
+        <example>UTC to local conversion should be correct</example>
+        <example>DST transition should not lose/duplicate hours</example>
+      </examples>
+    </category>
+
+    <category name="Invalid">
+      <test_values>Feb 30, month 13, hour 25</test_values>
+      <what_breaks>Validation, parsing</what_breaks>
+      <examples>
+        <example>Invalid date should be rejected</example>
+        <example>Hour 25 should raise error</example>
+      </examples>
+    </category>
+  </date_time>
+
+  <files_io>
+    <category name="Size">
+      <test_values>0 bytes, 1 byte, >4GB</test_values>
+      <what_breaks>Memory, streaming, buffer allocation</what_breaks>
+      <examples>
+        <example>Empty file should not crash parser</example>
+        <example>Large file should use streaming</example>
+      </examples>
+    </category>
+
+    <category name="Names">
+      <test_values>spaces, unicode, ".", "..", special chars</test_values>
+      <what_breaks>Path resolution, security, display</what_breaks>
+      <examples>
+        <example>Filename with spaces should work</example>
+        <example>".." should not allow directory traversal</example>
+      </examples>
+    </category>
+
+    <category name="Permissions">
+      <test_values>read-only, no access, locked file</test_values>
+      <what_breaks>Error handling, write operations</what_breaks>
+      <examples>
+        <example>Read-only file should reject writes</example>
+        <example>No access should raise permission error</example>
+      </examples>
+    </category>
+  </files_io>
+
+  <state_lifecycle>
+    <category name="Initialization">
+      <test_values>uninitialized, double init</test_values>
+      <what_breaks>State corruption, resource leaks</what_breaks>
+      <examples>
+        <example>Using before init should raise error</example>
+        <example>Double init should be idempotent or error</example>
+      </examples>
+    </category>
+
+    <category name="Order">
+      <test_values>out-of-order calls, missing steps</test_values>
+      <what_breaks>Precondition violations, state machine</what_breaks>
+      <examples>
+        <example>Calling finalize before start should error</example>
+        <example>Skipping required step should be detected</example>
+      </examples>
+    </category>
+
+    <category name="Cleanup">
+      <test_values>use after dispose, double dispose</test_values>
+      <what_breaks>Resource leaks, crashes</what_breaks>
+      <examples>
+        <example>Using after dispose should raise error</example>
+        <example>Double dispose should be safe</example>
+      </examples>
+    </category>
+
+    <category name="Idempotency">
+      <test_values>same operation twice</test_values>
+      <what_breaks>Side effect duplication</what_breaks>
+      <examples>
+        <example>Calling save twice should not duplicate records</example>
+        <example>Retry should be safe</example>
+      </examples>
+    </category>
+  </state_lifecycle>
+
+  <network_api>
+    <category name="Availability">
+      <test_values>timeout, connection refused, DNS failure</test_values>
+      <what_breaks>Error handling, retry logic</what_breaks>
+      <examples>
+        <example>Timeout should raise appropriate error</example>
+        <example>Connection refused should be handled</example>
+      </examples>
+    </category>
+
+    <category name="Response">
+      <test_values>empty body, malformed JSON, partial response</test_values>
+      <what_breaks>Parsing, validation</what_breaks>
+      <examples>
+        <example>Empty response should not crash parser</example>
+        <example>Malformed JSON should raise parse error</example>
+      </examples>
+    </category>
+
+    <category name="Status Codes">
+      <test_values>200, 400, 401, 403, 404, 500, 503</test_values>
+      <what_breaks>Error mapping, retry logic</what_breaks>
+      <examples>
+        <example>401 should trigger authentication</example>
+        <example>500 should retry, 400 should not</example>
+      </examples>
+    </category>
+  </network_api>
+
+  <security_user_input>
+    <category name="Injection">
+      <test_values>'; DROP TABLE, <script>, $(cmd)</test_values>
+      <what_breaks>SQL injection, XSS, command injection</what_breaks>
+      <examples>
+        <example>SQL injection attempt should be escaped</example>
+        <example>Script tags should be sanitized</example>
+      </examples>
+    </category>
+
+    <category name="Format">
+      <test_values>wrong format, partial, extra fields</test_values>
+      <what_breaks>Validation bypass</what_breaks>
+      <examples>
+        <example>Invalid email format should be rejected</example>
+        <example>Extra fields should be ignored or rejected</example>
+      </examples>
+    </category>
+
+    <category name="Size">
+      <test_values>too short, too long, exactly at limit</test_values>
+      <what_breaks>Buffer issues, validation</what_breaks>
+      <examples>
+        <example>Password too short should be rejected</example>
+        <example>Input at exact limit should be accepted</example>
+      </examples>
+    </category>
+  </security_user_input>
+
+  <business_logic_checklist>
+    <consideration>Minimum/maximum allowed values for each field</consideration>
+    <consideration>Required vs optional field combinations</consideration>
+    <consideration>State transitions - what sequences are valid?</consideration>
+    <consideration>Permissions - admin vs user vs anonymous</consideration>
+    <consideration>Temporal - expired, not-yet-valid, exactly-at-boundary</consideration>
+    <consideration>Monetary - rounding, currency conversion, negative amounts</consideration>
+  </business_logic_checklist>
+
+  <usage_guidance>
+    <when_to_reference>
+      Reference this file when user asks for "comprehensive tests" or "edge case coverage"
+    </when_to_reference>
+    <how_to_apply>
+      <step>Identify the data types involved in the function</step>
+      <step>Scan relevant categories for applicable edge cases</step>
+      <step>Select edge cases that make sense for the specific context</step>
+      <step>Write tests for selected edge cases with clear names</step>
+    </how_to_apply>
+    <note>
+      Not every edge case applies to every function. Use judgment to select relevant ones.
+    </note>
+  </usage_guidance>
+</edge_case_patterns>
+
+<!-- Made with Bob -->

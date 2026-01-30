@@ -1,0 +1,306 @@
+<test_quality_principles>
+  <overview>
+    Guidelines for writing high-quality tests that catch real bugs and survive refactoring.
+    These principles apply across all languages and frameworks.
+  </overview>
+
+  <four_tier_test_strategy>
+    <description>
+      For each function or component, systematically consider these four tiers.
+      This ensures comprehensive coverage without redundancy.
+    </description>
+    <tier number="1" name="Core Functionality">
+      <focus>Main purpose, return values, realistic data</focus>
+      <questions>
+        <question>What is the primary purpose of this code?</question>
+        <question>What should it return for typical inputs?</question>
+        <question>What are realistic usage scenarios?</question>
+      </questions>
+      <example>
+        <![CDATA[
+def test_calculate_total_sums_item_prices():
+    """Calculator should sum all item prices correctly."""
+    items = [
+        {"name": "apple", "price": 1.50},
+        {"name": "banana", "price": 0.75},
+        {"name": "orange", "price": 2.00}
+    ]
+    assert calculate_total(items) == 4.25
+        ]]>
+      </example>
+    </tier>
+
+    <tier number="2" name="Input Validation">
+      <focus>Invalid types, null/undefined, empty, boundaries</focus>
+      <questions>
+        <question>What happens with invalid input types?</question>
+        <question>How does it handle null/undefined/empty?</question>
+        <question>What are the boundary conditions?</question>
+      </questions>
+      <example>
+        <![CDATA[
+def test_calculate_total_rejects_negative_prices():
+    """Calculator should reject items with negative prices."""
+    items = [{"name": "invalid", "price": -5.00}]
+    with pytest.raises(ValueError, match="negative price"):
+        calculate_total(items)
+
+def test_calculate_total_handles_empty_list():
+    """Calculator should return 0 for empty item list."""
+    assert calculate_total([]) == 0
+        ]]>
+      </example>
+    </tier>
+
+    <tier number="3" name="Error Handling">
+      <focus>Expected exceptions, meaningful error messages</focus>
+      <questions>
+        <question>What errors should be raised?</question>
+        <question>Are error messages helpful?</question>
+        <question>Is the error type appropriate?</question>
+      </questions>
+      <example>
+        <![CDATA[
+def test_calculate_total_error_message_includes_item_name():
+    """Error message should identify which item caused the problem."""
+    items = [
+        {"name": "valid", "price": 1.00},
+        {"name": "problematic", "price": -5.00}
+    ]
+    with pytest.raises(ValueError) as exc_info:
+        calculate_total(items)
+    assert "problematic" in str(exc_info.value)
+        ]]>
+      </example>
+    </tier>
+
+    <tier number="4" name="Side Effects">
+      <focus>External calls, state changes, dependency interactions</focus>
+      <questions>
+        <question>Does this modify external state?</question>
+        <question>Does this call external services?</question>
+        <question>Are there observable side effects?</question>
+      </questions>
+      <example>
+        <![CDATA[
+def test_save_order_creates_database_record(db_session):
+    """Saving order should create a record in database."""
+    order = Order(items=[...])
+    save_order(order, db_session)
+    
+    saved = db_session.query(Order).filter_by(id=order.id).first()
+    assert saved is not None
+    assert saved.total == order.total
+        ]]>
+      </example>
+    </tier>
+  </four_tier_test_strategy>
+
+  <anti_patterns>
+    <anti_pattern name="Shallow Assertions (Coverage Theater)">
+      <description>
+        Tests that pass even when code is broken. They check execution, not correctness.
+      </description>
+      <bad_example>
+        <![CDATA[
+def test_process_data():
+    result = process_data(input)
+    assert result is not None  # Passes even if result is wrong
+    assert isinstance(result, dict)  # Only checks type
+        ]]>
+      </bad_example>
+      <good_example>
+        <![CDATA[
+def test_process_data_preserves_keys():
+    result = process_data({"user": "alice", "age": 30})
+    assert result["user"] == "alice"  # Validates actual values
+    assert result["age"] == 30
+    assert "processed_at" in result
+    assert isinstance(result["processed_at"], datetime)
+        ]]>
+      </good_example>
+      <why_problematic>
+        These tests give false confidence. They show green but don't catch bugs.
+      </why_problematic>
+    </anti_pattern>
+
+    <anti_pattern name="Testing Implementation Instead of Behavior">
+      <description>
+        Tests that break on refactoring even when behavior is unchanged.
+        They test HOW code works, not WHAT it does.
+      </description>
+      <bad_example>
+        <![CDATA[
+def test_uses_internal_cache():
+    obj = MyClass()
+    obj.process()
+    assert obj._internal_cache is not None  # Tests private state
+    assert len(obj._cache_hits) > 0  # Tests implementation detail
+        ]]>
+      </bad_example>
+      <good_example>
+        <![CDATA[
+def test_second_call_returns_same_result():
+    obj = MyClass()
+    first = obj.process()
+    second = obj.process()
+    assert first == second  # Tests observable behavior
+    
+def test_second_call_is_faster():
+    obj = MyClass()
+    start = time.time()
+    obj.process()
+    first_duration = time.time() - start
+    
+    start = time.time()
+    obj.process()
+    second_duration = time.time() - start
+    
+    assert second_duration < first_duration * 0.5  # Caching makes it faster
+        ]]>
+      </good_example>
+      <why_problematic>
+        Refactoring becomes painful. Tests fail even when behavior is correct.
+      </why_problematic>
+    </anti_pattern>
+
+    <anti_pattern name="Over-Mocking">
+      <description>
+        Mocking too much, including the code being tested or simple value objects.
+      </description>
+      <when_to_mock>
+        <scenario>External APIs or services</scenario>
+        <scenario>Database connections</scenario>
+        <scenario>File system operations</scenario>
+        <scenario>Third-party libraries with side effects</scenario>
+        <scenario>Time/randomness for deterministic tests</scenario>
+      </when_to_mock>
+      <never_mock>
+        <item>The code being tested</item>
+        <item>Simple value objects or data classes</item>
+        <item>Internal methods of the class under test</item>
+        <item>Pure functions with no side effects</item>
+      </never_mock>
+      <bad_example>
+        <![CDATA[
+def test_calculate_discount():
+    # Over-mocking: mocking the function we're testing!
+    with patch('module.calculate_discount', return_value=10):
+        result = calculate_discount(100, 0.1)
+        assert result == 10  # This test is meaningless
+        ]]>
+      </bad_example>
+      <good_example>
+        <![CDATA[
+def test_calculate_discount():
+    # No mocking needed - pure function
+    result = calculate_discount(100, 0.1)
+    assert result == 10
+    
+def test_apply_discount_saves_to_database(mock_db):
+    # Mock only external dependency
+    order = Order(total=100)
+    apply_discount(order, 0.1, mock_db)
+    
+    mock_db.save.assert_called_once()
+    saved_order = mock_db.save.call_args[0][0]
+    assert saved_order.total == 90
+        ]]>
+      </good_example>
+    </anti_pattern>
+
+    <anti_pattern name="The Verification-Validation Trap">
+      <description>
+        AI tests verify what code DOES, not what it SHOULD do.
+        If you test after implementation, you may validate bugs as features.
+      </description>
+      <problem>
+        When AI examines implementation first, it generates tests that pass with current code,
+        even if current code is buggy.
+      </problem>
+      <solution>
+        Write tests first (TDD), or have user specify expected behavior before looking at implementation.
+      </solution>
+      <example_scenario>
+        <situation>
+          Function has off-by-one error: returns items[0:n-1] instead of items[0:n]
+        </situation>
+        <bad_approach>
+          AI looks at implementation, generates test expecting n-1 items, test passes
+        </bad_approach>
+        <good_approach>
+          User specifies "should return n items", AI writes test expecting n items, test fails, bug found
+        </good_approach>
+      </example_scenario>
+    </anti_pattern>
+  </anti_patterns>
+
+  <assertion_responsibility>
+    <principle>
+      AI generates test structure. Humans must validate assertions.
+    </principle>
+    <validation_checklist>
+      <item>Does assertion validate actual behavior, not just types?</item>
+      <item>Would this test fail if core logic broke?</item>
+      <item>Is test name describing expected behavior clearly?</item>
+      <item>Would this test survive refactoring?</item>
+    </validation_checklist>
+    <when_uncertain>
+      Ask: "What specific value or state change should I verify here?"
+      Do not guess or use shallow assertions like `assert result is not None`.
+    </when_uncertain>
+  </assertion_responsibility>
+
+  <test_organization>
+    <structure>
+      <![CDATA[
+describe('[Component/Module]', () => {
+  describe('[Behavior being tested]', () => {
+    it('[expected outcome] when [condition]', () => {})
+  })
+})
+      ]]>
+    </structure>
+    <principles>
+      <principle>Group by behavior, not by method</principle>
+      <principle>One assertion per test when possible</principle>
+      <principle>Test names should read like specifications</principle>
+      <principle>Arrange-Act-Assert pattern for clarity</principle>
+    </principles>
+    <naming_conventions>
+      <convention language="python">test_[behavior]_[condition]_[expected]</convention>
+      <convention language="javascript">should [expected] when [condition]</convention>
+      <convention language="rust">test_[behavior]_[condition]</convention>
+      <example>
+        <good>test_validates_email_rejects_missing_at_symbol</good>
+        <good>should reject negative amounts when processing payment</good>
+        <bad>test1</bad>
+        <bad>test_function</bad>
+        <bad>test_works</bad>
+      </example>
+    </naming_conventions>
+  </test_organization>
+
+  <cross_language_principles>
+    <principle name="One behavior per test">
+      Easier to diagnose failures. Test name clearly indicates what broke.
+    </principle>
+    <principle name="Descriptive names">
+      Test name should explain what is being tested without reading the code.
+    </principle>
+    <principle name="AAA pattern">
+      Arrange (setup), Act (execute), Assert (verify). Clear separation of concerns.
+    </principle>
+    <principle name="Minimal mocking">
+      Only mock external dependencies. Keep tests close to real usage.
+    </principle>
+    <principle name="Fast execution">
+      Unit tests should run in milliseconds. Slow tests won't be run.
+    </principle>
+    <principle name="Deterministic">
+      No flaky tests from timing, randomness, or external state.
+    </principle>
+  </cross_language_principles>
+</test_quality_principles>
+
+<!-- Made with Bob -->

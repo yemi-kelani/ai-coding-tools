@@ -1,0 +1,426 @@
+<language_specific_guidance>
+  <overview>
+    Framework-specific patterns, tools, and AI considerations by language.
+    Reference this when working with specific testing frameworks.
+  </overview>
+
+  <python>
+    <framework name="pytest" preferred="true">
+      <patterns>
+        <pattern name="Fixtures">
+          <description>Use fixtures for shared setup instead of hardcoded values</description>
+          <example>
+            <![CDATA[
+@pytest.fixture
+def sample_user():
+    return User(name="Alice", age=30)
+
+def test_user_can_login(sample_user):
+    assert sample_user.login() == True
+            ]]>
+          </example>
+          <ai_consideration>
+            AI often generates hardcoded values instead of fixtures.
+            Explicitly request @pytest.fixture when needed.
+          </ai_consideration>
+        </pattern>
+
+        <pattern name="Parametrized Tests">
+          <description>Use parametrize for multiple test cases</description>
+          <example>
+            <![CDATA[
+@pytest.mark.parametrize("input,expected", [
+    (0, "zero"),
+    (1, "one"),
+    (-1, "negative"),
+])
+def test_describe_number(input, expected):
+    assert describe_number(input) == expected
+            ]]>
+          </example>
+          <ai_consideration>
+            Ask for @pytest.mark.parametrize explicitly for multiple similar test cases.
+          </ai_consideration>
+        </pattern>
+
+        <pattern name="AAA Pattern">
+          <description>Arrange-Act-Assert for clarity</description>
+          <example>
+            <![CDATA[
+def test_user_can_update_email():
+    # Arrange
+    user = User(email="old@example.com")
+    
+    # Act
+    user.update_email("new@example.com")
+    
+    # Assert
+    assert user.email == "new@example.com"
+            ]]>
+          </example>
+        </pattern>
+
+        <pattern name="Exception Testing">
+          <description>Use pytest.raises for exception testing</description>
+          <example>
+            <![CDATA[
+def test_invalid_age_raises_error():
+    with pytest.raises(ValueError, match="age must be positive"):
+        validate_age(-1)
+            ]]>
+          </example>
+        </pattern>
+      </patterns>
+
+      <tools>
+        <tool name="pytest-cov">Coverage reporting</tool>
+        <tool name="mutmut">Mutation testing</tool>
+        <tool name="pytest-mock">Mocking utilities</tool>
+        <tool name="unittest.mock">Built-in mocking</tool>
+      </tools>
+
+      <common_mistakes>
+        <mistake>Using assert True after code runs (shallow assertion)</mistake>
+        <mistake>Not using pytest.raises for exception testing</mistake>
+        <mistake>Mocking too much internal state</mistake>
+        <mistake>Not using fixtures for shared setup</mistake>
+      </common_mistakes>
+
+      <ai_support>
+        <quality>Excellent - abundant training data</quality>
+        <strengths>
+          <strength>Handles pytest idioms well</strength>
+          <strength>Good at generating parametrized tests</strength>
+          <strength>Understands fixture patterns</strength>
+        </strengths>
+      </ai_support>
+    </framework>
+  </python>
+
+  <typescript_javascript>
+    <framework name="Jest" preferred="true">
+      <patterns>
+        <pattern name="Descriptive Structure">
+          <description>Use describe/it for clear test organization</description>
+          <example>
+            <![CDATA[
+describe('PaymentProcessor', () => {
+  describe('processPayment', () => {
+    it('should return success for valid payment', async () => {
+      const processor = new PaymentProcessor();
+      const result = await processor.processPayment({
+        amount: 100,
+        currency: 'USD'
+      });
+      expect(result.status).toBe('success');
+      expect(result.transactionId).toBeDefined();
+    });
+
+    it('should reject negative amounts', async () => {
+      const processor = new PaymentProcessor();
+      await expect(
+        processor.processPayment({ amount: -50, currency: 'USD' })
+      ).rejects.toThrow('Invalid amount');
+    });
+  });
+});
+            ]]>
+          </example>
+        </pattern>
+
+        <pattern name="Async Testing">
+          <description>Always await async operations</description>
+          <example>
+            <![CDATA[
+it('should fetch user data', async () => {
+  const data = await fetchUser(123);
+  expect(data.id).toBe(123);
+});
+            ]]>
+          </example>
+        </pattern>
+
+        <pattern name="Specific Assertions">
+          <description>Use specific matchers, not toBeTruthy</description>
+          <good>expect(result.status).toBe('success')</good>
+          <bad>expect(result.status).toBeTruthy()</bad>
+        </pattern>
+      </patterns>
+
+      <tools>
+        <tool name="Jest">Built-in coverage and mocking</tool>
+        <tool name="Vitest">Faster alternative to Jest</tool>
+        <tool name="Stryker">Mutation testing</tool>
+        <tool name="msw">API mocking</tool>
+        <tool name="React Testing Library">React component testing</tool>
+      </tools>
+
+      <common_mistakes>
+        <mistake>Using toBeTruthy() instead of specific value assertions</mistake>
+        <mistake>Not awaiting async operations</mistake>
+        <mistake>Over-mocking with jest.mock() for everything</mistake>
+        <mistake>Testing implementation details in React components</mistake>
+      </common_mistakes>
+
+      <ai_support>
+        <quality>Excellent - best AI support of any language</quality>
+        <strengths>
+          <strength>Copilot's strongest language</strength>
+          <strength>TypeScript types improve accuracy significantly</strength>
+          <strength>AI leverages types to reduce null/undefined tests</strength>
+          <strength>React Testing Library patterns well understood</strength>
+        </strengths>
+        <recommendation>
+          For React: explicitly mention React Testing Library patterns
+        </recommendation>
+      </ai_support>
+    </framework>
+  </typescript_javascript>
+
+  <rust>
+    <framework name="built-in" preferred="true">
+      <patterns>
+        <pattern name="Basic Test">
+          <description>Use #[test] attribute for test functions</description>
+          <example>
+            <![CDATA[
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_valid_input_returns_ok() {
+        let result = validate_input("valid");
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "valid");
+    }
+}
+            ]]>
+          </example>
+        </pattern>
+
+        <pattern name="Expected Panic">
+          <description>Use should_panic for expected panics</description>
+          <example>
+            <![CDATA[
+#[test]
+#[should_panic(expected = "empty input")]
+fn test_empty_input_panics() {
+    validate_input("");
+}
+            ]]>
+          </example>
+        </pattern>
+
+        <pattern name="Result Testing">
+          <description>Test both Ok and Err paths exhaustively</description>
+          <example>
+            <![CDATA[
+#[test]
+fn test_result_handling() {
+    // Success case
+    assert!(parse_config("valid").is_ok());
+    
+    // Error case - check error type
+    let err = parse_config("invalid").unwrap_err();
+    assert!(matches!(err, ConfigError::InvalidFormat(_)));
+}
+            ]]>
+          </example>
+        </pattern>
+
+        <pattern name="Error Message Validation">
+          <description>Validate error messages contain useful information</description>
+          <example>
+            <![CDATA[
+#[test]
+fn test_error_contains_message() {
+    let result = validate_input("");
+    assert!(result.is_err());
+    assert!(result.unwrap_err().to_string().contains("empty"));
+}
+            ]]>
+          </example>
+        </pattern>
+      </patterns>
+
+      <tools>
+        <tool name="cargo-tarpaulin">Coverage reporting</tool>
+        <tool name="cargo-mutants">Mutation testing</tool>
+        <tool name="cargo clippy">Linting (run as guardrail on AI code)</tool>
+        <tool name="proptest">Property-based testing</tool>
+        <tool name="quickcheck">Property-based testing</tool>
+      </tools>
+
+      <common_mistakes>
+        <mistake>Using unwrap() in tests without checking is_ok() first</mistake>
+        <mistake>Not testing Result and Option exhaustively</mistake>
+        <mistake>Not validating error types and messages</mistake>
+      </common_mistakes>
+
+      <ai_support>
+        <quality>Moderate - more limited training data than Python/JS</quality>
+        <strengths>
+          <strength>Compiler catches many AI errors via type system</strength>
+          <strength>Borrow checker validates correctness</strength>
+          <strength>Property-based testing works well with AI</strength>
+        </strengths>
+        <weaknesses>
+          <weakness>AI struggles with lifetime annotations</weakness>
+          <weakness>May generate code that doesn't compile</weakness>
+          <weakness>Manual fixes often needed for borrow checker</weakness>
+        </weaknesses>
+        <recommendation>
+          Run cargo clippy on AI-generated test code as a guardrail
+        </recommendation>
+      </ai_support>
+    </framework>
+  </rust>
+
+  <dart_flutter>
+    <framework name="flutter_test" preferred="true">
+      <patterns>
+        <pattern name="Unit Test">
+          <description>Basic unit test structure</description>
+          <example>
+            <![CDATA[
+void main() {
+  group('Counter', () => {
+    test('initial value is 0', () {
+      final counter = Counter();
+      expect(counter.value, 0);
+    });
+
+    test('increment increases value', () {
+      final counter = Counter();
+      counter.increment();
+      expect(counter.value, 1);
+    });
+  });
+}
+            ]]>
+          </example>
+        </pattern>
+
+        <pattern name="Widget Test">
+          <description>Testing Flutter widgets</description>
+          <example>
+            <![CDATA[
+void main() {
+  testWidgets('MyWidget displays text', (tester) async {
+    await tester.pumpWidget(const MyApp());
+    
+    expect(find.text('Hello'), findsOneWidget);
+    
+    await tester.tap(find.byType(ElevatedButton));
+    await tester.pump();
+    
+    expect(find.text('Tapped'), findsOneWidget);
+  });
+}
+            ]]>
+          </example>
+        </pattern>
+
+        <pattern name="Provider Testing">
+          <description>Testing with providers</description>
+          <example>
+            <![CDATA[
+testWidgets('uses provider value', (tester) async {
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        myProvider.overrideWithValue(MockValue()),
+      ],
+      child: const MyApp(),
+    ),
+  );
+  // assertions...
+});
+            ]]>
+          </example>
+        </pattern>
+
+        <pattern name="Golden Tests">
+          <description>Visual regression testing</description>
+          <example>
+            <![CDATA[
+testWidgets('matches golden', (tester) async {
+  await tester.pumpWidget(const MyWidget());
+  await expectLater(
+    find.byType(MyWidget),
+    matchesGoldenFile('goldens/my_widget.png'),
+  );
+});
+            ]]>
+          </example>
+        </pattern>
+      </patterns>
+
+      <tools>
+        <tool name="flutter test --coverage">Built-in coverage</tool>
+        <tool name="mocktail">Mocking library</tool>
+        <tool name="mockito">Alternative mocking</tool>
+        <tool name="integration_test">Integration testing</tool>
+      </tools>
+
+      <common_mistakes>
+        <mistake>Forgetting pump() or pumpAndSettle() after state changes</mistake>
+        <mistake>Not wrapping widgets in MaterialApp for widget tests</mistake>
+        <mistake>Using real HTTP in unit tests instead of mocking</mistake>
+        <mistake>Not testing widget state changes</mistake>
+      </common_mistakes>
+
+      <ai_support>
+        <quality>Moderate - growing training data</quality>
+        <strengths>
+          <strength>Widget tests generate well once patterns established</strength>
+          <strength>Good at basic unit test structure</strength>
+        </strengths>
+        <weaknesses>
+          <weakness>Limited knowledge of newer packages</weakness>
+          <weakness>May miss pump() calls</weakness>
+          <weakness>Less familiar with advanced Flutter patterns</weakness>
+        </weaknesses>
+        <recommendation>
+          Use custom instructions file for Flutter-specific rules
+        </recommendation>
+      </ai_support>
+    </framework>
+  </dart_flutter>
+
+  <cross_language_principles>
+    <principle name="One behavior per test">
+      Easier to diagnose failures. Test name clearly indicates what broke.
+    </principle>
+    <principle name="Descriptive names">
+      Test name should explain what is being tested without reading the code.
+    </principle>
+    <principle name="AAA pattern">
+      Arrange (setup), Act (execute), Assert (verify). Clear separation of concerns.
+    </principle>
+    <principle name="Minimal mocking">
+      Only mock external dependencies. Keep tests close to real usage.
+    </principle>
+    <principle name="Fast execution">
+      Unit tests should run in milliseconds. Slow tests won't be run.
+    </principle>
+    <principle name="Deterministic">
+      No flaky tests from timing, randomness, or external state.
+    </principle>
+  </cross_language_principles>
+
+  <framework_selection_guidance>
+    <when_to_ask>
+      If framework is not specified and cannot be inferred from existing tests
+    </when_to_ask>
+    <how_to_infer>
+      <step>Check for existing test files in the project</step>
+      <step>Look for test framework imports</step>
+      <step>Check package.json, requirements.txt, Cargo.toml, pubspec.yaml</step>
+      <step>Use the preferred framework for the language if no existing tests</step>
+    </how_to_infer>
+  </framework_selection_guidance>
+</language_specific_guidance>
+
+<!-- Made with Bob -->

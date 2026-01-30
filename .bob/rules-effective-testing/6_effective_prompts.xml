@@ -1,0 +1,322 @@
+<effective_prompts>
+  <overview>
+    Example prompts for common testing scenarios. Use these as templates to guide users
+    toward providing better context for test generation.
+  </overview>
+
+  <prompt_quality_principles>
+    <principle>Specify expected behaviors, not just "add tests"</principle>
+    <principle>Include concrete examples of inputs and outputs</principle>
+    <principle>Mention edge cases that matter</principle>
+    <principle>Reference existing test patterns to follow</principle>
+    <principle>Be specific about what should pass and what should fail</principle>
+  </prompt_quality_principles>
+
+  <scenario name="Starting TDD for New Feature">
+    <template>
+      <![CDATA[
+I want to implement [feature description]. Let's do TDD.
+
+First, write tests for these behaviors:
+- [expected behavior 1]
+- [expected behavior 2]
+- [edge case 1]
+
+Use [framework]. Don't write implementation yet.
+      ]]>
+    </template>
+    <example>
+      <![CDATA[
+I want to implement a password validator. Let's do TDD.
+
+First, write tests for these behaviors:
+- Accepts passwords with 8+ characters, uppercase, lowercase, and numbers
+- Rejects passwords shorter than 8 characters
+- Rejects passwords without uppercase letters
+- Rejects passwords without numbers
+- Handles empty string and null inputs
+
+Use pytest. Don't write implementation yet.
+      ]]>
+    </example>
+  </scenario>
+
+  <scenario name="Adding Tests to Existing Code">
+    <template>
+      <![CDATA[
+Write tests for `[function_name]` in [file].
+
+Expected behaviors:
+- [what it should do with valid input]
+- [what it should do with invalid input]
+- [edge cases: empty, null, boundary values]
+
+Match the testing patterns in [existing_test_file].
+      ]]>
+    </template>
+    <example>
+      <![CDATA[
+Write tests for `calculate_shipping_cost` in src/shipping.py.
+
+Expected behaviors:
+- Returns correct cost for standard shipping (weight * $0.50)
+- Returns correct cost for express shipping (weight * $1.50)
+- Rejects negative weights
+- Handles zero weight (should return minimum $5)
+- Rounds to 2 decimal places
+
+Match the testing patterns in tests/test_pricing.py.
+      ]]>
+    </example>
+  </scenario>
+
+  <scenario name="Comprehensive Edge Case Coverage">
+    <template>
+      <![CDATA[
+Generate boundary value tests for [function/validator]:
+- Test at min/max boundaries ([specific values])
+- Test immediately outside boundaries
+- Test type mismatches (string instead of number, etc.)
+- Test null, undefined, empty string, empty array
+- Test extreme values (0, -999, MAX_INT)
+      ]]>
+    </template>
+    <example>
+      <![CDATA[
+Generate boundary value tests for age validator:
+- Test at boundaries: 0, 18, 120
+- Test outside boundaries: -1, 121
+- Test type mismatches: "18" (string), null, undefined
+- Test extreme values: -999, 999
+- Test decimal values: 17.9, 18.0, 18.1
+      ]]>
+    </example>
+  </scenario>
+
+  <scenario name="Testing Error Handling">
+    <template>
+      <![CDATA[
+Write tests for error handling in [function]:
+- What exception is thrown for [invalid input 1]?
+- What exception is thrown for [invalid input 2]?
+- Does the error message contain [expected info]?
+- Is the error recoverable or fatal?
+      ]]>
+    </template>
+    <example>
+      <![CDATA[
+Write tests for error handling in parse_json_config:
+- What exception is thrown for malformed JSON?
+- What exception is thrown for missing required fields?
+- Does the error message contain the field name?
+- Does the error message contain the line number?
+      ]]>
+    </example>
+  </scenario>
+
+  <scenario name="Testing Async Operations">
+    <template>
+      <![CDATA[
+Write tests for the async function [name]:
+- Test successful resolution with [expected data]
+- Test timeout behavior after [N] seconds
+- Test rejection with [error type]
+- Test retry logic: fails twice, succeeds third time
+- Test concurrent calls don't interfere
+      ]]>
+    </template>
+    <example>
+      <![CDATA[
+Write tests for the async function fetchUserProfile:
+- Test successful resolution with user object containing id, name, email
+- Test timeout behavior after 5 seconds
+- Test rejection with NetworkError for connection failures
+- Test retry logic: fails twice with 500, succeeds third time
+- Test concurrent calls for different users don't interfere
+      ]]>
+    </example>
+  </scenario>
+
+  <scenario name="API/Integration Tests">
+    <template>
+      <![CDATA[
+Write integration tests for [endpoint]:
+- GET with valid params returns [expected structure]
+- GET with invalid params returns 400
+- Unauthorized request returns 401
+- Not found returns 404
+- Malformed request body returns 400 with [error format]
+      ]]>
+    </template>
+    <example>
+      <![CDATA[
+Write integration tests for /api/users/:id:
+- GET with valid ID returns user object with id, name, email, created_at
+- GET with non-existent ID returns 404
+- GET without auth token returns 401
+- GET with invalid ID format returns 400
+- Response includes proper Content-Type header
+      ]]>
+    </example>
+  </scenario>
+
+  <scenario name="Requesting Test Review">
+    <template>
+      <![CDATA[
+Review these tests for [function]:
+- Which tests would actually catch a regression?
+- Are any assertions too shallow?
+- What edge cases am I missing?
+- Are any tests testing implementation instead of behavior?
+      ]]>
+    </template>
+    <note>
+      This prompts critical analysis of existing tests
+    </note>
+  </scenario>
+
+  <scenario name="After AI Generates Tests">
+    <template>
+      <![CDATA[
+For each test you just generated:
+1. What specific bug would this test catch?
+2. Would this test fail if I [specific code change]?
+3. Is the assertion verifying behavior or just execution?
+      ]]>
+    </template>
+    <note>
+      This validates that tests are meaningful and not just coverage theater
+    </note>
+  </scenario>
+
+  <scenario name="Requesting Mutation Testing Setup">
+    <template>
+      <![CDATA[
+Set up mutation testing for [project/module]:
+- What tool should I use for [language]?
+- Which files should be targeted?
+- What mutation score should I aim for?
+- Show me how to run it and interpret results.
+      ]]>
+    </template>
+  </scenario>
+
+  <scenario name="Testing State Machines">
+    <template>
+      <![CDATA[
+Write tests for [state machine/workflow]:
+- Test each valid state transition
+- Test invalid transitions are rejected
+- Test initial state is correct
+- Test terminal states cannot transition
+- Test idempotency of transitions
+      ]]>
+    </template>
+    <example>
+      <![CDATA[
+Write tests for order workflow state machine:
+- Test transitions: pending → processing → shipped → delivered
+- Test invalid: pending → delivered (skipping steps)
+- Test initial state is pending
+- Test delivered state cannot transition further
+- Test processing → processing is idempotent
+      ]]>
+    </example>
+  </scenario>
+
+  <scenario name="Testing Data Transformations">
+    <template>
+      <![CDATA[
+Write tests for [transformation function]:
+- Input [example 1] → Output [expected 1]
+- Input [example 2] → Output [expected 2]
+- Preserves [invariant] during transformation
+- Handles missing fields by [expected behavior]
+- Round-trip: transform then reverse equals original
+      ]]>
+    </template>
+    <example>
+      <![CDATA[
+Write tests for user data normalization:
+- Input {name: "ALICE", email: "Alice@Example.COM"} → {name: "Alice", email: "alice@example.com"}
+- Input {name: "bob"} → {name: "Bob", email: null}
+- Preserves user ID during transformation
+- Handles missing email by setting to null
+- Round-trip: normalize then denormalize equals original
+      ]]>
+    </example>
+  </scenario>
+
+  <prompt_improvements>
+    <comparison>
+      <instead_of>add tests</instead_of>
+      <say>Write tests for [specific behaviors]</say>
+    </comparison>
+    <comparison>
+      <instead_of>comprehensive tests</instead_of>
+      <say>Tests covering [list specific cases]</say>
+    </comparison>
+    <comparison>
+      <instead_of>good tests</instead_of>
+      <say>Tests that would fail if [specific bug]</say>
+    </comparison>
+    <comparison>
+      <instead_of>test this</instead_of>
+      <say>Test that [function] returns [X] when [Y]</say>
+    </comparison>
+    <comparison>
+      <instead_of>fix the tests</instead_of>
+      <say>Update tests to expect [new behavior]</say>
+    </comparison>
+  </prompt_improvements>
+
+  <questions_to_ask_after_generation>
+    <question>Is there anything I'm not testing?</question>
+    <question>Which of these tests is most valuable?</question>
+    <question>Would any of these tests pass even if the code was broken?</question>
+    <question>Are we testing behavior or implementation details?</question>
+    <question>What's the minimal set of tests that would catch real bugs?</question>
+  </questions_to_ask_after_generation>
+
+  <when_user_provides_poor_prompt>
+    <poor_example>add tests for foo.py</poor_example>
+    <response_strategy>
+      <step>Acknowledge the request</step>
+      <step>Explain that context improves test quality significantly</step>
+      <step>Ask specific questions about expected behavior</step>
+      <step>Provide 2-4 suggested answers based on code analysis</step>
+    </response_strategy>
+    <example_response>
+      <![CDATA[
+I'll write tests for foo.py. To ensure high-quality tests that catch real bugs, 
+I need to understand the expected behavior.
+
+Looking at the code, I see a `validate_payment` function. What should happen when:
+1. Amount is negative?
+2. Currency is empty or null?
+3. Amount is zero?
+
+Suggested answers:
+- Reject negative amounts with ValueError
+- Reject empty currency with ValueError  
+- Accept zero amounts (valid for refunds)
+- Reject zero amounts (no zero-value payments)
+      ]]>
+    </example_response>
+  </when_user_provides_poor_prompt>
+
+  <usage_in_mode>
+    <guideline>
+      When user provides ambiguous test request, use ask_followup_question with
+      suggestions based on these prompt templates
+    </guideline>
+    <guideline>
+      Reference these templates in responses to help users improve their prompts
+    </guideline>
+    <guideline>
+      Use these patterns to structure your own questions about expected behavior
+    </guideline>
+  </usage_in_mode>
+</effective_prompts>
+
+<!-- Made with Bob -->

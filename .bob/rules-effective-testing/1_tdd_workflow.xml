@@ -1,0 +1,181 @@
+<tdd_workflow>
+  <overview>
+    This workflow enforces Test-Driven Development (TDD) for all test generation.
+    Research shows AI-generated tests have 45% pass rate with proper context vs 7.5% without.
+    Context provision is the single most important factor in test quality.
+  </overview>
+
+  <core_principle>
+    Tests are specifications, not afterthoughts. Every test must answer: "What bug would this catch?"
+    If you cannot articulate a specific failure mode the test guards against, the test has no value.
+    Tests validate contracts, not code paths.
+  </core_principle>
+
+  <mandatory_workflow>
+    <step number="1">
+      <title>Gather Context</title>
+      <description>
+        Before writing any test, ensure you have complete context.
+        NEVER generate tests from ambiguous requests without understanding what behaviors matter.
+      </description>
+      <required_context>
+        <item>Function signatures with type hints</item>
+        <item>Docstrings explaining intended behavior (what it should do, not just what it does)</item>
+        <item>Existing test files in the project (patterns to follow)</item>
+        <item>Expected inputs and outputs for complex logic</item>
+        <item>Edge cases the user cares about</item>
+      </required_context>
+      <when_to_ask>
+        <scenario>The function's contract is unclear from code/comments</scenario>
+        <scenario>Multiple valid interpretations of "correct" exist</scenario>
+        <scenario>Error handling expectations are unspecified</scenario>
+        <scenario>Business rules aren't documented</scenario>
+        <scenario>Edge case behavior is ambiguous</scenario>
+      </when_to_ask>
+      <how_to_ask>
+        <guideline>Frame questions around behavior, not implementation</guideline>
+        <guideline>Ask ONE focused question, not a list</guideline>
+        <guideline>Get the answer, then proceed</guideline>
+        <example_questions>
+          <question>Should this throw or return null for empty input?</question>
+          <question>What's the expected behavior for duplicate entries?</question>
+          <question>Should validation happen before or after transformation?</question>
+        </example_questions>
+      </how_to_ask>
+      <tools_to_use>
+        <tool>read_file - Examine function implementation and docstrings</tool>
+        <tool>search_files - Find existing test patterns in the project</tool>
+        <tool>list_code_definition_names - Understand module structure</tool>
+        <tool>ask_followup_question - Clarify ambiguous requirements</tool>
+      </tools_to_use>
+    </step>
+
+    <step number="2">
+      <title>Write Tests First</title>
+      <description>
+        Write tests based on expected behavior BEFORE any implementation exists or is modified.
+        This is non-negotiable in TDD workflow.
+      </description>
+      <requirements>
+        <requirement>State explicitly that you are doing TDD</requirement>
+        <requirement>Do NOT create mock implementations</requirement>
+        <requirement>Do NOT write implementation code yet</requirement>
+        <requirement>Write tests that describe expected behavior clearly</requirement>
+      </requirements>
+      <test_structure>
+        <principle>One behavior per test</principle>
+        <principle>Descriptive test names that explain what is being tested</principle>
+        <principle>AAA pattern: Arrange, Act, Assert</principle>
+        <principle>Clear assertion that validates specific behavior</principle>
+      </test_structure>
+      <example language="python">
+        <![CDATA[
+def test_validates_age_rejects_negative():
+    """Age validator should reject negative values."""
+    with pytest.raises(ValidationError):
+        validate_age(-1)
+
+def test_validates_age_accepts_valid_range():
+    """Age validator should accept values between 0 and 150."""
+    assert validate_age(25) == 25
+    assert validate_age(0) == 0
+    assert validate_age(150) == 150
+        ]]>
+      </example>
+    </step>
+
+    <step number="3">
+      <title>Confirm Tests Fail</title>
+      <description>
+        Run tests and verify they fail for the RIGHT reason.
+        This validates that tests are actually testing something.
+      </description>
+      <expected_failures>
+        <failure type="acceptable">Missing function - expected for new features</failure>
+        <failure type="acceptable">Function exists but returns wrong value - expected</failure>
+        <failure type="problematic">Wrong assertion - fix the test, not the code</failure>
+        <failure type="problematic">Test passes immediately - test is not validating behavior</failure>
+      </expected_failures>
+      <action>
+        Use execute_command to run tests and verify failure.
+        Do NOT proceed to implementation until tests fail correctly.
+      </action>
+    </step>
+
+    <step number="4">
+      <title>Implementation (Separate Step)</title>
+      <description>
+        Only after tests are committed and failing correctly, write implementation that passes tests.
+      </description>
+      <rules>
+        <rule>Do NOT modify the tests to make them pass</rule>
+        <rule>If tests seem wrong, discuss with user first</rule>
+        <rule>Implementation should be minimal - just enough to pass tests</rule>
+        <rule>If implementation reveals test gaps, add more tests (return to step 2)</rule>
+      </rules>
+      <note>
+        This step may require switching to code mode if current mode has file restrictions.
+        Use switch_mode tool if needed.
+      </note>
+    </step>
+
+    <step number="5">
+      <title>Verify Against Overfitting</title>
+      <description>
+        Check that implementation doesn't "game" the tests.
+        Tests should catch real bugs, not just pass with current implementation.
+      </description>
+      <validation_questions>
+        <question>Would tests catch off-by-one errors?</question>
+        <question>Would tests catch null/undefined handling bugs?</question>
+        <question>Would tests catch boundary condition errors?</question>
+        <question>Would tests pass if implementation was subtly wrong?</question>
+      </validation_questions>
+      <recommendation>
+        For high-value code (payments, auth, data integrity), suggest mutation testing
+        to validate test quality. See 5_mutation_testing.xml for details.
+      </recommendation>
+    </step>
+  </mandatory_workflow>
+
+  <workflow_violations>
+    <violation>
+      <description>Generating tests after looking at implementation</description>
+      <problem>Tests will validate what code does, not what it should do</problem>
+      <solution>Ask user to specify expected behavior before examining implementation</solution>
+    </violation>
+    <violation>
+      <description>Writing implementation and tests together</description>
+      <problem>Defeats purpose of TDD - tests won't catch implementation bugs</problem>
+      <solution>Separate into distinct steps with user confirmation between</solution>
+    </violation>
+    <violation>
+      <description>Modifying tests to make them pass</description>
+      <problem>Tests become meaningless - they validate nothing</problem>
+      <solution>Discuss with user if tests need adjustment, don't silently change</solution>
+    </violation>
+  </workflow_violations>
+
+  <context_quality_checklist>
+    <category name="before_starting">
+      <item>Have I read the function/class being tested?</item>
+      <item>Do I understand the expected behavior?</item>
+      <item>Have I checked existing test patterns in this project?</item>
+      <item>Do I know what edge cases matter?</item>
+    </category>
+    <category name="during_test_writing">
+      <item>Can I articulate what bug each test catches?</item>
+      <item>Am I testing behavior or implementation?</item>
+      <item>Are my assertions specific and meaningful?</item>
+      <item>Would these tests survive refactoring?</item>
+    </category>
+    <category name="before_completion">
+      <item>Have I covered the four-tier test strategy? (core, validation, errors, side effects)</item>
+      <item>Would these tests catch real bugs?</item>
+      <item>Are test names descriptive and clear?</item>
+      <item>Have I avoided common anti-patterns?</item>
+    </category>
+  </context_quality_checklist>
+</tdd_workflow>
+
+<!-- Made with Bob -->
